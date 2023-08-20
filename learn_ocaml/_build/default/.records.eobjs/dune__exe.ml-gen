@@ -3,6 +3,9 @@
 (** @canonical Dune__exe.Advent_of_code *)
 module Advent_of_code = Dune__exe__Advent_of_code
 
+(** @canonical Dune__exe.Arrays *)
+module Arrays = Dune__exe__Arrays
+
 (** @canonical Dune__exe.Lists *)
 module Lists = Dune__exe__Lists
 

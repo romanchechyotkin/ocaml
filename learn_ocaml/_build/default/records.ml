@@ -43,3 +43,9 @@ finish_todo t3;;
 Printf.printf "\n";;
 
 List.iter print_todo !storage;;
+
+let square (x: int): int = x * x;;  
+let add_one (x: int): int = x + 1;;  
+let right_count x = add_one @@ square x;; (* from right to left*)
+let left_count x = add_one x |> square;; (* from left to right*)
+
