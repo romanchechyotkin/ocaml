@@ -28,7 +28,7 @@ let print_struct (ss: some_struct) : unit =
 ;;
 
 let add_numbers (ss: some_struct) (args: int array): unit = 
-  ss.numbers <- Array.append ss.numbers args;
+  ss.numbers <- Array.append ss.numbers args; 
   ()
 ;;
 
@@ -41,3 +41,10 @@ add_numbers my_struct nums;;
 add_numbers my_struct [|5|];;
 
 print_struct my_struct;;
+
+
+(* funny *)
+let (!?!?!) (num: int): unit = 
+  Printf.printf "my func %d" num;;
+
+!?!?!2  
