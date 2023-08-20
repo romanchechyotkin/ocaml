@@ -3,7 +3,7 @@
 # Shared cache: disabled
 # Workspace root: /home/chechyotka/projects/ocaml/ninety_nine_problems
 # Auto-detected concurrency: 12
-$ /home/chechyotka/.opam/4.14.0/bin/ocamlc.opt -config > /tmp/dune_c14c73_output
+$ /home/chechyotka/.opam/4.14.0/bin/ocamlc.opt -config > /tmp/dune_fc463d_output
 # Dune context:
 #  { name = "default"
 #  ; kind = "default"
@@ -111,13 +111,3 @@ $ /home/chechyotka/.opam/4.14.0/bin/ocamlc.opt -config > /tmp/dune_c14c73_output
 #      ; windows_unicode = false
 #      }
 #  }
-$ (cd _build/default && /home/chechyotka/.opam/4.14.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I bin/fisrt_problem/.main.eobjs/byte -I bin/fisrt_problem/.main.eobjs/native -I lib/.ninety_nine_problems.objs/byte -I lib/.ninety_nine_problems.objs/native -intf-suffix .ml -no-alias-deps -opaque -o bin/fisrt_problem/.main.eobjs/native/dune__exe__Main.cmx -c -impl bin/fisrt_problem/main.ml)
-> File "bin/fisrt_problem/main.ml", line 27, characters 13-35:
-> 27 | print_result (last ["a"; "v"; "c"]);;
->                   ^^^^^^^^^^^^^^^^^^^^^^
-> Error: This expression has type string option
->        but an expression was expected of type
->          [< `Int of int | `String of string ] option
->        Type string is not compatible with type
->          [< `Int of int | `String of string ] 
-[2]
