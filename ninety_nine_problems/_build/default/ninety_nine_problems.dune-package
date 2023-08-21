@@ -1,6 +1,4 @@
 (lang dune 3.10)
 (name ninety_nine_problems)
-(sections (lib .) (bin ../../bin))
-(files
- (lib (META dune-package opam))
- (bin (ninety_nine_problems ninety_nine_problems)))
+(sections (lib .))
+(files (lib (META dune-package opam)))
