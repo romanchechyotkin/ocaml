@@ -1,5 +1,6 @@
-open Printf;;
-open Tyxml.Html;;
+open Lwt.Syntax;;
+
+let elt_to_string elt = Fmt.str "%a" (Tyxml.Html.pp_elt()) elt;;
 
 type todo = {
   id: int;
@@ -7,55 +8,84 @@ type todo = {
   is_done: bool; 
 }
 
-let storage: todo list ref = ref [];;
+let storage: todo list ref = ref [
+];;
 
-let elt_to_string elt = Fmt.str "%a" (Tyxml.Html.pp_elt()) elt;;
+let display_row row = 
+  let open Tyxml.Html in 
+  let ocaml = li ~a:[a_class ["flex"; "gap-1"] ] [
+    div [ txt (Int.to_string row.id) ]; 
+    div [ txt (row.title) ]; 
+    div [ txt (Bool.to_string row.is_done) ]; 
+  ] in 
+  ocaml
+;;
 
-let create_todo (title: string) = 
-  let todo: todo = {title; is_done = false; id = List.length !storage} in
-  storage := todo :: !storage;
-  let ocaml = 
-    div ~a:[ a_class [ "todo" ] ] 
+let display_storage list = 
+  let open Tyxml.Html in 
+  let ocaml = ul ~a:[a_class ["list"]; a_id "list" ] (List.map (display_row) list) in
+  ocaml
+;;
+
+let create_form () = 
+  let open Tyxml.Html in
+  let ocaml = div ~a:[] [ 
+    input() ~a:[ 
+      a_placeholder "name"; 
+      a_input_type `Text; 
+      a_name "input";
+      Unsafe.string_attrib "hx-post" "/create";
+      Unsafe.string_attrib "hx-trigger" "click[ctrlKey]"; 
+      Unsafe.string_attrib "hx-target" "#list"; 
+      Unsafe.string_attrib "hx-swap" "beforeend"; 
+    ];  
+  ] in
+  ocaml
+;;
+
+let create_todo (name: string) = 
+  let t: todo = {
+    id = List.length !storage;
+    title = name;  
+    is_done = false;
+  } in
+  storage := t :: !storage; 
+  display_row t
+;;
+
+let index = 
+  let open Tyxml.Html in 
+  let ocaml = html ~a:[a_class ["p-3.5"] ] (
+    head 
+      (title (txt "ocaml"))
+      [ 
+        script ~a:[a_src "https://unpkg.com/htmx.org@1.9.4" ] (txt "");
+        script ~a:[a_src "https://cdn.tailwindcss.com" ] (txt "") 
+      ]
+      ) 
+    (body 
     [
-      span [txt (sprintf "%d" todo.id) ];
-      span [txt (sprintf "%s" todo.title) ];
-      span [txt (sprintf "%b" todo.is_done) ];
-    ] in
-  Dream.html @@ elt_to_string ocaml
+      create_form();
+      display_storage !storage
+    ] )
+  in
+  ocaml
 ;;
-
-(* let update_todo (id: int) = 
-  let open Base in
-  match List.find !storage ~f:(fun t -> t.id = id) with
-    | Some todo -> todo.is_done <- true
-    | None -> ()
-;;
- *)
-(* 
- let render_todos = 
-  let ocaml = List.map !storage ~f:() in
-  Dream.html @@ elt_to_string ocaml
-;; *)
-
-(* 
-let responde request = 
-  let* body = Dream.body request in
-  Dream.respond ~headers:["Content-Type", "application/octet-stream"] body;; *)
-
 
 let main () =
   Dream.run ~port: 22869
   @@ Dream.logger
   @@ Dream.router [
 
-    Dream.get "/" (Dream.from_filesystem "static" "index.html");
-    (* Dream.get "/todo" (fun _ -> render_todos); *)
-    Dream.post "/todo" (fun request -> 
-      let%lwt form = Dream.form request in
-      match form with
-      | `Ok ["title", title] -> create_todo title
+    Dream.get "/" (fun _ -> (Dream.html @@ elt_to_string index));
+
+    Dream.post "/create" (fun request -> 
+      let* name = Dream.form ~csrf:false request in
+      match name with
+      | `Ok ["input", value] ->
+        Dream.html @@ elt_to_string (create_todo value)
       | _ -> Dream.empty `Bad_Request
-    );
+    )
 
   ]
 ;;
