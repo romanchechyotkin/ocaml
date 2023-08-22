@@ -8,8 +8,7 @@ type todo = {
   is_done: bool; 
 }
 
-let storage: todo list ref = ref [
-];;
+let storage: todo list ref = ref [];;
 
 let display_row row = 
   let open Tyxml.Html in 
@@ -21,15 +20,15 @@ let display_row row =
   ocaml
 ;;
 
-let display_storage list = 
+let display_storage storage = 
   let open Tyxml.Html in 
-  let ocaml = ul ~a:[a_class ["list"]; a_id "list" ] (List.map (display_row) list) in
+  let ocaml = ul ~a:[a_class ["list"]; a_id "list" ] (List.map (display_row) storage) in
   ocaml
 ;;
 
 let create_form () = 
   let open Tyxml.Html in
-  let ocaml = div ~a:[] [ 
+  let ocaml = 
     input() ~a:[ 
       a_placeholder "name"; 
       a_input_type `Text; 
@@ -38,7 +37,6 @@ let create_form () =
       Unsafe.string_attrib "hx-trigger" "click[ctrlKey]"; 
       Unsafe.string_attrib "hx-target" "#list"; 
       Unsafe.string_attrib "hx-swap" "beforeend"; 
-    ];  
   ] in
   ocaml
 ;;
@@ -53,21 +51,21 @@ let create_todo (name: string) =
   display_row t
 ;;
 
-let index = 
+let index storage = 
   let open Tyxml.Html in 
   let ocaml = html ~a:[a_class ["p-3.5"] ] (
     head 
       (title (txt "ocaml"))
       [ 
-        script ~a:[a_src "https://unpkg.com/htmx.org@1.9.4" ] (txt "");
-        script ~a:[a_src "https://cdn.tailwindcss.com" ] (txt "") 
+        script ~a:[a_src "https://unpkg.com/htmx.org@1.9.4"] (txt "");
+        script ~a:[a_src "https://cdn.tailwindcss.com"] (txt "") 
       ]
       ) 
     (body 
     [
       create_form();
-      display_storage !storage
-    ] )
+      display_storage storage;
+    ])
   in
   ocaml
 ;;
@@ -77,7 +75,11 @@ let main () =
   @@ Dream.logger
   @@ Dream.router [
 
-    Dream.get "/" (fun _ -> (Dream.html @@ elt_to_string index));
+    Dream.get "/" (fun _ -> 
+      (
+        List.iter (fun t -> Dream.log "%d %s %b" t.id t.title t.is_done) !storage;
+        Dream.html @@ elt_to_string (index (List.rev !storage))
+      ));
 
     Dream.post "/create" (fun request -> 
       let* name = Dream.form ~csrf:false request in
