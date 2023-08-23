@@ -69,6 +69,20 @@ let create_form () =
   ocaml
 ;;
 
+let search_form () = 
+  let open Tyxml.Html in
+  let ocaml = input() ~a:[ 
+    a_input_type `Text; 
+    a_name "search";
+    a_placeholder "search..."; 
+    Unsafe.string_attrib "hx-post" "/search";
+    Unsafe.string_attrib "hx-trigger" "keyup changed delay:500ms. search"; 
+    Unsafe.string_attrib "hx-target" "#list"; 
+    Unsafe.string_attrib "hx-swap" "innerHTML"; 
+  ] in
+  ocaml
+;;
+
 let create_todo (name: string) = 
   let t: todo = {
     id = List.length !storage;
@@ -93,6 +107,23 @@ let delete_todo id =
   storage := List.filter (fun t -> t.id != id) !storage
 ;;
 
+let contains s1 s2 =
+  let re = Str.regexp_string s2
+  in
+      try ignore (Str.search_forward re s1 0); true
+      with Not_found -> false
+;;
+
+let search_todos msg = 
+  let result: todo list ref = ref [] in
+  List.iter (fun t -> 
+    match contains t.title msg  with
+    | true -> result := t :: !result
+    | false -> ()
+  ) !storage;
+  display_storage !result  
+;;
+
 let index storage = 
   let open Tyxml.Html in 
   let ocaml = html ~a:[a_class ["p-3.5"] ] (
@@ -105,7 +136,10 @@ let index storage =
       ) 
     (body 
     [
-      create_form();
+      div ~a:[ a_class [ "flex"; "gap-10" ] ] [
+        create_form();
+        search_form();
+      ];
       display_storage storage;
     ])
   in
@@ -139,6 +173,16 @@ let main () =
       let id = Dream.param request "id" in
       delete_todo (int_of_string id);
       Dream.empty `OK
+    );
+     
+    Dream.post "/search" (fun request -> 
+      let* msg = Dream.form ~csrf:false request in 
+      match msg with
+      | `Ok ["search", value] -> 
+        if value = "" then  
+          Dream.html @@ elt_to_string (display_storage (List.rev !storage)) 
+        else Dream.html @@ (elt_to_string (search_todos value))
+      | _ -> Dream.empty `Bad_Request 
     )
 
   ]
